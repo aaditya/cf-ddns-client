@@ -15,14 +15,19 @@ const updateZone = require('./lib/cf_update');
  * 2. Limit Update requests to ease load on cf api
  */
 
-async function refreshDNS() {
+(async () => {
   try {
     // Get current network info from system
     const nets = networkInterfaces();
 
+    // Create the Logs Directory
+    if (!fs.existsSync('./logs')) fs.mkdirSync('logs');
     // Get last updated address, if any.
     if (!fs.existsSync('./last_address.txt')) fs.writeFileSync('last_address.txt', '');
     const lastAddress = fs.readFileSync('last_address.txt', 'utf-8');
+
+    // Keep a running log
+    fs.appendFileSync("logs/running.log", `${new Date().toISOString()} | Script Executed \n`);
 
     // Get the exact IP Address, change line 20 to '24' if IPv4.
     let networks = Object.values(nets).reduce((p, c) => p = p.concat(c), []);
@@ -41,17 +46,11 @@ async function refreshDNS() {
 
     // Only change non updated DNS Records
     await Promise.allSettled(unchangedZones.map(zone => updateZone(zone.id, address)));
-    console.log(new Date(), "Records Updated");
-    
+    fs.appendFileSync("logs/update.log", `${new Date().toISOString()} | Records Updated \n`);
+
     // Update Last Address
     fs.writeFileSync('last_address.txt', address);
   } catch (err) {
-    console.log(err.message);
+    fs.appendFileSync("logs/error.log", `${new Date().toISOString()} | ${err.message} \n`);
   }
-}
-
-// Initial Execution
-refreshDNS();
-
-// Run every 15 minutes
-setInterval(refreshDNS, 900000);
+})();
