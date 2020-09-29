@@ -43,7 +43,7 @@ async function refreshDNS() {
     // Update Last Address
     fs.writeFileSync('last_address.txt', address);
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
   }
 }
 
