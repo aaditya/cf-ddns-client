@@ -27,9 +27,6 @@ const updateZone = require('./lib/cf_update');
     if (!fs.existsSync(path.join(__dirname, 'last_address.txt'))) fs.writeFileSync(path.join(__dirname, 'last_address.txt'), '');
     const lastAddress = fs.readFileSync(path.join(__dirname, 'last_address.txt'), 'utf-8');
 
-    // Keep a running log
-    fs.appendFileSync(path.join(__dirname, "logs/running.log"), `${new Date().toISOString()} | Script Executed \n`);
-
     // Get the exact IP Address, change line 20 to '24' if IPv4.
     let networks = Object.values(nets).reduce((p, c) => p = p.concat(c), []);
     let { address } = networks.find(n => !n.internal && n.cidr.split('/')[1] === '128');

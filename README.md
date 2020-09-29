@@ -27,4 +27,4 @@ ZONE_ID=<cloudflare_zone_id>
 
 ## Logging
 
-Error, Running and Update logs are generated in the `logs/` directory inside the project folder.
+Error and Update logs are generated in the `logs/` directory inside the project folder.
