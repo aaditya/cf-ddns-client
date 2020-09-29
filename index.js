@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const { networkInterfaces } = require('os');
+const path = require('path');
 
 // If started through service, preloaded dotenv does not work.
 if (!process.env.ZONE_ID) require('dotenv').config();
@@ -21,13 +22,13 @@ const updateZone = require('./lib/cf_update');
     const nets = networkInterfaces();
 
     // Create the Logs Directory
-    if (!fs.existsSync('./logs')) fs.mkdirSync('logs');
+    if (!fs.existsSync(path.join(__dirname, 'logs/'))) fs.mkdirSync(path.join(__dirname, 'logs'));
     // Get last updated address, if any.
-    if (!fs.existsSync('./last_address.txt')) fs.writeFileSync('last_address.txt', '');
-    const lastAddress = fs.readFileSync('last_address.txt', 'utf-8');
+    if (!fs.existsSync(path.join(__dirname, 'last_address.txt'))) fs.writeFileSync(path.join(__dirname, 'last_address.txt'), '');
+    const lastAddress = fs.readFileSync(path.join(__dirname, 'last_address.txt'), 'utf-8');
 
     // Keep a running log
-    fs.appendFileSync("logs/running.log", `${new Date().toISOString()} | Script Executed \n`);
+    fs.appendFileSync(path.join(__dirname, "logs/running.log"), `${new Date().toISOString()} | Script Executed \n`);
 
     // Get the exact IP Address, change line 20 to '24' if IPv4.
     let networks = Object.values(nets).reduce((p, c) => p = p.concat(c), []);
@@ -46,11 +47,11 @@ const updateZone = require('./lib/cf_update');
 
     // Only change non updated DNS Records
     await Promise.allSettled(unchangedZones.map(zone => updateZone(zone.id, address)));
-    fs.appendFileSync("logs/update.log", `${new Date().toISOString()} | Records Updated \n`);
+    fs.appendFileSync(path.join(__dirname, "logs/update.log"), `${new Date().toISOString()} | Records Updated \n`);
 
     // Update Last Address
-    fs.writeFileSync('last_address.txt', address);
+    fs.writeFileSync(path.join(__dirname, 'last_address.txt'), address);
   } catch (err) {
-    fs.appendFileSync("logs/error.log", `${new Date().toISOString()} | ${err.message} \n`);
+    fs.appendFileSync(path.join(__dirname, "logs/error.log"), `${new Date().toISOString()} | ${err.message} \n`);
   }
 })();
