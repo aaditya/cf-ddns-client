@@ -3,6 +3,9 @@
 const fs = require('fs');
 const { networkInterfaces } = require('os');
 
+// If started through service, preloaded dotenv does not work.
+if (!process.env.ZONE_ID) require('dotenv').config();
+
 const fetchZones = require('./lib/cf_fetch');
 const updateZone = require('./lib/cf_update');
 
@@ -46,6 +49,9 @@ async function refreshDNS() {
     console.log(err.message);
   }
 }
+
+// Initial Execution
+refreshDNS();
 
 // Run every 15 minutes
 setInterval(refreshDNS, 900000);

@@ -17,4 +17,16 @@ ZONE_ID=<cloudflare_zone_id>
 
 ## Running
 
-> `npm run start-local`
+> `npm i`
+
+> `npm start`
+
+### Other Running Options
+
+You can run the process via nodemon for auto reload.
+
+> `npm run start-dev`
+
+You can run the process in the background. It needs `forever` to be installed globally in the system.
+
+> `npm run start-service`
