@@ -46,7 +46,7 @@ const updateZone = require('./lib/cf_update');
     if (unchangedZones.length === 0) return;
 
     // Only change non updated DNS Records
-    await Promise.allSettled(unchangedZones.map(zone => updateZone(zone.id, address)));
+    await Promise.all(unchangedZones.map(zone => updateZone(zone.id, address)));
     fs.appendFileSync(path.join(__dirname, "logs/update.log"), `${new Date().toISOString()} | Records Updated \n`);
 
     // Update Last Address
