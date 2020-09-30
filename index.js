@@ -5,7 +5,7 @@ const { networkInterfaces } = require('os');
 const path = require('path');
 
 // If started through service, preloaded dotenv does not work.
-if (!process.env.ZONE_ID) require('dotenv').config();
+if (!process.env.ZONE_ID) require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const fetchZones = require('./lib/cf_fetch');
 const updateZone = require('./lib/cf_update');
@@ -21,11 +21,14 @@ const updateZone = require('./lib/cf_update');
     // Get current network info from system
     const nets = networkInterfaces();
 
+    // Files
+    const lastAddressFile = path.resolve(__dirname, 'last_address.txt');
+
     // Create the Logs Directory
     if (!fs.existsSync(path.join(__dirname, 'logs/'))) fs.mkdirSync(path.join(__dirname, 'logs'));
     // Get last updated address, if any.
-    if (!fs.existsSync(path.join(__dirname, 'last_address.txt'))) fs.writeFileSync(path.join(__dirname, 'last_address.txt'), '');
-    const lastAddress = fs.readFileSync(path.join(__dirname, 'last_address.txt'), 'utf-8');
+    if (!fs.existsSync(lastAddressFile)) fs.writeFileSync(lastAddressFile, '');
+    const lastAddress = fs.readFileSync(lastAddressFile, 'utf-8');
 
     // Get the exact IP Address, change line 20 to '24' if IPv4.
     let networks = Object.values(nets).reduce((p, c) => p = p.concat(c), []);
@@ -38,7 +41,7 @@ const updateZone = require('./lib/cf_update');
     let unchangedZones = cfZones.filter(zone => zone.ip !== address);
 
     // Initial Update for IP
-    if (unchangedZones.length === 0 && lastAddress === '') fs.writeFileSync('last_address.txt', address);
+    if (unchangedZones.length === 0 && lastAddress === '') fs.writeFileSync(lastAddressFile, address);
     // Complete if no changes
     if (unchangedZones.length === 0) return;
 
@@ -47,7 +50,7 @@ const updateZone = require('./lib/cf_update');
     fs.appendFileSync(path.join(__dirname, "logs/update.log"), `${new Date().toISOString()} | Records Updated \n`);
 
     // Update Last Address
-    fs.writeFileSync(path.join(__dirname, 'last_address.txt'), address);
+    fs.writeFileSync(lastAddressFile, address);
   } catch (err) {
     fs.appendFileSync(path.join(__dirname, "logs/error.log"), `${new Date().toISOString()} | ${err.message} \n`);
   }
