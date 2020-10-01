@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.20.0"
+    "axios": "^0.20.0",
+    "public-ip": "^4.0.2"
   },
   "devDependencies": {
     "dotenv": "^8.2.0",
