@@ -3,6 +3,7 @@
 const fs = require('fs');
 const { networkInterfaces } = require('os');
 const path = require('path');
+const publicIp = require('public-ip');
 
 // If started through service, preloaded dotenv does not work.
 if (!process.env.ZONE_ID) require('dotenv').config({ path: path.resolve(__dirname, '.env') });
@@ -31,11 +32,19 @@ const updateZone = require('./lib/cf_update');
     const lastAddress = fs.readFileSync(lastAddressFile, 'utf-8');
 
     // Get the exact IP Address, change line 20 to '24' if IPv4.
-    let networks = Object.values(nets).reduce((p, c) => p = p.concat(c), []);
-    let { address } = networks.find(n => !n.internal && n.cidr.split('/')[1] === '128');
-
+    let address;
+    
+    if(process.env.DNS_TYPE === "AAAA")
+    {
+      let networks = Object.values(nets).reduce((p, c) => p = p.concat(c), []);
+      address = networks.find(n => !n.internal && n.cidr.split('/')[1] === '128').address;  
+    }
+    else if(process.env.DNS_TYPE === "A")
+    {
+      address = await publicIp.v4();
+    }
     if (lastAddress === address) return;
-
+    
     // Get DNS Records for Zone
     let cfZones = await fetchZones();
     let unchangedZones = cfZones.filter(zone => zone.ip !== address);
