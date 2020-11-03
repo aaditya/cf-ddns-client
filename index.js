@@ -1,7 +1,6 @@
 'use strict';
 
 const fs = require('fs');
-const { networkInterfaces } = require('os');
 const path = require('path');
 const publicIp = require('public-ip');
 
@@ -19,9 +18,6 @@ const updateZone = require('./lib/cf_update');
 
 (async () => {
   try {
-    // Get current network info from system
-    const nets = networkInterfaces();
-
     // Files
     const lastAddressFile = path.resolve(__dirname, 'last_address.txt');
 
@@ -31,20 +27,17 @@ const updateZone = require('./lib/cf_update');
     if (!fs.existsSync(lastAddressFile)) fs.writeFileSync(lastAddressFile, '');
     const lastAddress = fs.readFileSync(lastAddressFile, 'utf-8');
 
-    // Get the exact IP Address, change line 20 to '24' if IPv4.
+    // Get the exact IP Address.
     let address;
-    
-    if(process.env.DNS_TYPE === "AAAA")
-    {
-      let networks = Object.values(nets).reduce((p, c) => p = p.concat(c), []);
-      address = networks.find(n => !n.internal && n.cidr.split('/')[1] === '128').address;  
-    }
-    else if(process.env.DNS_TYPE === "A")
-    {
+
+    if (process.env.DNS_TYPE === "AAAA") {
+      address = await publicIp.v6();
+    } else if (process.env.DNS_TYPE === "A") {
       address = await publicIp.v4();
     }
+
     if (lastAddress === address) return;
-    
+
     // Get DNS Records for Zone
     let cfZones = await fetchZones();
     let unchangedZones = cfZones.filter(zone => zone.ip !== address);
